@@ -11,12 +11,6 @@ import { RulesDialog } from '@/components/RulesDialog'
 import { streamChat, type ChatMsg, type Game } from '@/api'
 import { useGames } from '@/lib/useGames'
 
-const SUGGESTIONS = [
-  'We are 8 people on a grassy field with just a ball — what can we play?',
-  'How do the rules of Four Square work?',
-  'Rainy day, 5 of us stuck on the porch with nothing. Ideas?',
-]
-
 export default function Home() {
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
@@ -119,19 +113,6 @@ export default function Home() {
       </ScrollArea>
 
       <div className="border-t bg-background px-4 py-3">
-        {messages.length <= 1 && (
-          <div className="mx-auto mb-3 flex max-w-3xl flex-wrap gap-2">
-            {SUGGESTIONS.map((s) => (
-              <button
-                key={s}
-                onClick={() => send(s)}
-                className="rounded-full border px-3 py-1 text-xs text-zinc-300 transition hover:border-emerald-400 hover:text-white"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
         <div className="mx-auto flex max-w-3xl items-end gap-2">
           <Textarea
             value={input}

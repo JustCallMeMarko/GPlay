@@ -15,6 +15,28 @@ AREA_LABELS = {
     "indoor": "Indoor / Porch",
 }
 
+
+def game_tags(game: dict) -> list[str]:
+    """Derive display tags from a game's attributes."""
+    tags: list[str] = []
+    if game["equipment"]:
+        tags += [f"{e} Games" for e in game["equipment"]]
+    else:
+        tags.append("No Equipment")
+    if game["min_players"] <= 2:
+        tags.append("Solo Games")
+    elif game["min_players"] <= 5:
+        tags.append("Small Group")
+    if game["max_players"] >= 12:
+        tags.append("Group Games")
+    if "indoor" in game["areas"]:
+        tags.append("Indoor")
+    if any(a in game["areas"] for a in ("grass", "small_yard", "hard_ground")):
+        tags.append("Outdoor")
+    if game["energy"] == "high":
+        tags.append("Active")
+    return tags
+
 GAMES = [
     {
         "id": "tag-classic",

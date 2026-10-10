@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 from . import db
 from .games_data import AREA_LABELS, AREAS, EQUIPMENT
-from .llm import stream_rules, stream_chat
+from .llm import generate_game, stream_rules, stream_chat
 
 
 @asynccontextmanager
@@ -59,7 +59,17 @@ class ScoreRequest(BaseModel):
 
 
 def game_card(g: dict) -> dict:
-    return {k: g[k] for k in ("id", "name", "min_players", "max_players", "equipment", "areas", "energy", "summary")}
+    return {
+        k: g[k]
+        for k in (
+            "id", "name", "min_players", "max_players",
+            "equipment", "areas", "energy", "summary", "tags",
+        )
+    }
+
+
+def game_detail(g: dict) -> dict:
+    return {**game_card(g), "rules": g["base_rules"]}
 
 
 @app.get("/api/meta")
@@ -75,7 +85,20 @@ def match(req: MatchRequest):
 
 @app.get("/api/games")
 def games():
-    return {"games": [game_card(g) for g in db.list_games(app.state.conn)]}
+    return {"games": [game_detail(g) for g in db.list_games(app.state.conn)]}
+
+
+@app.post("/api/games/generate", status_code=201)
+async def games_generate():
+    """Invent a new game with the local model and store it in the catalog."""
+    existing = {g["id"] for g in db.list_games(app.state.conn)}
+    game = await generate_game(existing)
+    if game is None:
+        raise HTTPException(
+            status_code=503,
+            detail="AI generation unavailable — is Ollama running with gemma4:latest?",
+        )
+    return game_detail(db.insert_game(app.state.conn, game))
 
 
 @app.post("/api/chat")

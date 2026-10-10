@@ -6,7 +6,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from .games_data import GAMES
+from .games_data import GAMES, game_tags
 
 DB_PATH = Path(__file__).resolve().parent.parent / "games.db"
 
@@ -57,6 +57,7 @@ def row_to_game(row: sqlite3.Row) -> dict:
     g = dict(row)
     g["equipment"] = json.loads(g["equipment"])
     g["areas"] = json.loads(g["areas"])
+    g["tags"] = game_tags(g)
     return g
 
 
@@ -106,6 +107,17 @@ def add_score(conn: sqlite3.Connection, game_id: str, player_name: str, score: i
     conn.commit()
     row = conn.execute("SELECT * FROM scores WHERE id = ?", (cur.lastrowid,)).fetchone()
     return dict(row)
+
+
+def insert_game(conn: sqlite3.Connection, g: dict) -> dict:
+    conn.execute(
+        """INSERT INTO games
+           (id, name, min_players, max_players, equipment, areas, energy, summary, base_rules)
+           VALUES (:id, :name, :min_players, :max_players, :equipment, :areas, :energy, :summary, :base_rules)""",
+        {**g, "equipment": json.dumps(g["equipment"]), "areas": json.dumps(g["areas"])},
+    )
+    conn.commit()
+    return {**g, "tags": game_tags(g)}
 
 
 def list_scores(conn: sqlite3.Connection, game_id: str | None = None) -> list[dict]:

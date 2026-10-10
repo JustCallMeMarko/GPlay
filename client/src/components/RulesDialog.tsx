@@ -22,6 +22,11 @@ export function RulesDialog({ game, onClose, onScore }: Props) {
     abortRef.current?.abort()
     setRules('')
     if (!game) return
+    // Stored rules need no generation — show instantly.
+    if (game.rules) {
+      setRules(game.rules)
+      return
+    }
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setStreaming(true)
