@@ -1,4 +1,4 @@
-# Touch Grass: Play Outside
+# GPlay
 
 An open-source, local-first web app for the Hacktoberfest **"Touch Grass"** challenge.
 Tell it how many people you have, what equipment is on hand, and where you are — it

@@ -23,7 +23,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b px-4 py-4">
         <div className="flex items-center gap-2 font-bold">
           <TreePine className="h-5 w-5 text-emerald-600" />
-          Touch Grass
+          GPlay
         </div>
         <p className="text-xs text-muted-foreground">Play Outside</p>
       </SidebarHeader>

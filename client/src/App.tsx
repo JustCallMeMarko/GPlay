@@ -15,7 +15,7 @@ export default function App() {
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-6" />
           <span className="text-sm font-medium text-muted-foreground">
-            Touch Grass: Play Outside
+            GPlay
           </span>
         </header>
         <div className="flex-1 overflow-hidden">

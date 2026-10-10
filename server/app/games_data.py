@@ -1,4 +1,4 @@
-"""Seed dataset of physical games for Touch Grass: Play Outside.
+"""Seed dataset of physical games for GPlay.
 
 Each game declares the equipment it *requires* (empty list = none), the
 areas it works in, and a player range. `base_rules` is a short markdown

@@ -1,7 +1,7 @@
 [project]
 name = "touch-grass-server"
 version = "0.1.0"
-description = "FastAPI backend for Touch Grass: Play Outside"
+description = "FastAPI backend for GPlay"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",

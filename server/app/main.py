@@ -1,4 +1,4 @@
-"""Touch Grass: Play Outside — FastAPI backend."""
+"""GPlay — FastAPI backend."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     app.state.conn.close()
 
 
-app = FastAPI(title="Touch Grass: Play Outside", lifespan=lifespan)
+app = FastAPI(title="GPlay", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
