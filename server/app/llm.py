@@ -150,6 +150,70 @@ def _fallback_chat(message: str, catalog: list[dict]) -> tuple[str, list[str]]:
     return reply, picks
 
 
+GENERATE_PROMPT = """Invent ONE fun real-world physical game (not a video game, no screens).
+Return ONLY a JSON object — no markdown fences, no commentary — with keys:
+- "name": short catchy name
+- "min_players": int (1-10)
+- "max_players": int (>= min_players, <= 40)
+- "equipment": array, subset of {allowed_equipment} (empty = none needed)
+- "areas": array, subset of {allowed_areas}
+- "energy": one of "low","medium","high"
+- "summary": one sentence
+- "rules": markdown with a "### <name>" heading, a **Setup:** line, 4-8 bullet steps, and a **Win:** line.
+
+Make it something a family could learn in one minute."""
+
+
+def _slugify(name: str) -> str:
+    import re
+
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "custom-game"
+
+
+async def generate_game(existing_ids: set[str]) -> dict | None:
+    """Ask the local model to invent a new game; returns a game dict or None."""
+    prompt = GENERATE_PROMPT.format(
+        allowed_equipment=["Ball", "Chalk", "Jump Rope", "Frisbee", "Cones"],
+        allowed_areas=["hard_ground", "grass", "small_yard", "indoor"],
+    )
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=5.0)) as client:
+            resp = await client.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={"model": MODEL, "prompt": prompt, "stream": False},
+            )
+            resp.raise_for_status()
+            text = resp.json().get("response", "")
+    except (httpx.HTTPError, OSError):
+        return None
+
+    try:
+        start, end = text.index("{"), text.rindex("}")
+        data = json.loads(text[start : end + 1])
+    except (ValueError, json.JSONDecodeError):
+        return None
+
+    valid_eq = {"Ball", "Chalk", "Jump Rope", "Frisbee", "Cones"}
+    valid_ar = {"hard_ground", "grass", "small_yard", "indoor"}
+    name = str(data.get("name") or "Custom Game")[:60]
+    slug = _slugify(name)
+    i = 2
+    while slug in existing_ids:
+        slug = f"{_slugify(name)}-{i}"
+        i += 1
+    return {
+        "id": slug,
+        "name": name,
+        "min_players": max(1, int(data.get("min_players") or 2)),
+        "max_players": max(1, min(40, int(data.get("max_players") or 10))),
+        "equipment": [e for e in data.get("equipment", []) if e in valid_eq],
+        "areas": [a for a in data.get("areas", []) if a in valid_ar] or ["grass"],
+        "energy": data.get("energy") if data.get("energy") in ("low", "medium", "high") else "medium",
+        "summary": str(data.get("summary") or "")[:300],
+        "base_rules": str(data.get("rules") or ""),
+    }
+
+
 def _parse_pick_line(line: str, valid_ids: set[str]) -> tuple[str, list[str]]:
     """Split a stream line on the GAMES_PICK marker; returns (visible_text, ids)."""
     if GAME_PICK_MARKER not in line:

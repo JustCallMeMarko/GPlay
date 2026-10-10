@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { fetchGames, type Game } from '@/api'
 
 let cache: Game[] | null = null
@@ -6,8 +6,8 @@ let cache: Game[] | null = null
 export function useGames() {
   const [games, setGames] = useState<Game[] | null>(cache)
   const [error, setError] = useState(false)
-  useEffect(() => {
-    if (cache) return
+
+  const refresh = useCallback(() => {
     fetchGames()
       .then((g) => {
         cache = g
@@ -15,5 +15,11 @@ export function useGames() {
       })
       .catch(() => setError(true))
   }, [])
-  return { games, error }
+
+  useEffect(() => {
+    if (cache) return
+    refresh()
+  }, [refresh])
+
+  return { games, error, refresh }
 }

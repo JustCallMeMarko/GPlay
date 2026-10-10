@@ -7,6 +7,8 @@ export interface Game {
   areas: string[]
   energy: string
   summary: string
+  tags: string[]
+  rules?: string
 }
 
 export interface MatchQuery {
@@ -48,6 +50,15 @@ export async function fetchGames(): Promise<Game[]> {
   const res = await fetch('/api/games')
   if (!res.ok) throw new Error(`games failed: ${res.status}`)
   return (await res.json()).games
+}
+
+export async function generateGame(): Promise<Game> {
+  const res = await fetch('/api/games/generate', { method: 'POST' })
+  if (!res.ok) {
+    const detail = (await res.json().catch(() => ({}))).detail ?? res.status
+    throw new Error(typeof detail === 'string' ? detail : `generate failed: ${detail}`)
+  }
+  return res.json()
 }
 
 export async function fetchScores(gameId?: string): Promise<Score[]> {
