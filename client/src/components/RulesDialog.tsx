@@ -50,7 +50,7 @@ export function RulesDialog({ game, onClose, onScore }: Props) {
           </DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-4">
-          <div className="prose prose-sm max-w-none">
+          <div className="prose prose-sm max-w-none text-foreground dark:prose-invert">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{rules}</ReactMarkdown>
           </div>
         </ScrollArea>

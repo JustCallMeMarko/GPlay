@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Loader2, SendHorizonal, TreePine } from 'lucide-react'
+import { SendHorizonal, TreePine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -88,7 +88,7 @@ export default function Home() {
                 }`}
               >
                 {m.role === 'assistant' ? (
-                  <div className="prose prose-sm max-w-none">
+                  <div className="prose prose-sm max-w-none text-foreground dark:prose-invert">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {m.content || '…'}
                     </ReactMarkdown>
@@ -107,7 +107,12 @@ export default function Home() {
             </div>
           ))}
           {streaming && (
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <span
+              className="inline-block bg-gradient-to-r from-emerald-500 via-white to-emerald-500 bg-clip-text text-sm font-semibold text-transparent"
+              style={{ backgroundSize: '200% 100%', animation: 'shimmer 1.4s linear infinite' }}
+            >
+              Generating…
+            </span>
           )}
           <div ref={bottomRef} />
         </div>
@@ -120,7 +125,7 @@ export default function Home() {
               <button
                 key={s}
                 onClick={() => send(s)}
-                className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition hover:border-emerald-400 hover:text-foreground"
+                className="rounded-full border px-3 py-1 text-xs text-zinc-300 transition hover:border-emerald-400 hover:text-white"
               >
                 {s}
               </button>
@@ -145,7 +150,7 @@ export default function Home() {
             <SendHorizonal className="h-4 w-4" />
           </Button>
         </div>
-        <p className="mx-auto mt-1 flex max-w-3xl items-center gap-1 text-xs text-muted-foreground">
+        <p className="mx-auto mt-1 flex max-w-3xl items-center gap-1 text-xs text-zinc-300">
           <TreePine className="h-3 w-3" /> Coach only talks real-world games — 100% local.
         </p>
       </div>
