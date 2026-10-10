@@ -5,9 +5,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import type { Game } from '@/api'
 
 const ENERGY_STYLES: Record<string, string> = {
-  low: 'bg-sky-100 text-sky-700',
-  medium: 'bg-amber-100 text-amber-700',
-  high: 'bg-rose-100 text-rose-700',
+  low: 'bg-sky-500/15 text-sky-300',
+  medium: 'bg-amber-500/15 text-amber-300',
+  high: 'bg-rose-500/15 text-rose-300',
 }
 
 export function GameCard({ game, onPlay }: { game: Game; onPlay?: (g: Game) => void }) {

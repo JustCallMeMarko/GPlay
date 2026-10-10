@@ -151,3 +151,19 @@ def test_scores_roundtrip():
 def test_score_unknown_game_404():
     r = client().post("/api/scores", json={"game_id": "nope", "player_name": "x", "score": 1})
     assert r.status_code == 404
+
+
+def test_parse_pick_line():
+    from app.llm import _parse_pick_line, GAME_PICK_MARKER
+
+    valid = {"tag-classic", "hopscotch", "frisbee-golf"}
+    # marker alone on a line
+    visible, ids = _parse_pick_line(f"{GAME_PICK_MARKER} tag-classic,hopscotch,bad-id", valid)
+    assert visible == ""
+    assert ids == ["tag-classic", "hopscotch"]
+    # marker embedded after visible text
+    visible, ids = _parse_pick_line(f"Great picks! {GAME_PICK_MARKER} frisbee-golf", valid)
+    assert visible == "Great picks! "
+    assert ids == ["frisbee-golf"]
+    # no marker
+    assert _parse_pick_line("just text", valid) == ("just text", [])
