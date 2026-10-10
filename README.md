@@ -17,7 +17,18 @@ Zero cloud APIs, zero API fees, works fully offline.
 
 ## Quick start
 
-### 1. Backend
+### Docker (everything, one command)
+
+```bash
+docker compose up --build
+```
+
+Starts Ollama, pulls `gemma4:latest` into a persistent volume, launches the
+API and serves the frontend at http://localhost:5173.
+
+### Manual
+
+#### 1. Backend
 
 ```bash
 cd server
@@ -27,7 +38,7 @@ uv run uvicorn app.main:app --reload --port 8000
 
 The SQLite dataset (29 seeded games) is created automatically on first run.
 
-### 2. Frontend
+#### 2. Frontend
 
 ```bash
 cd client
