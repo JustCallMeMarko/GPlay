@@ -66,8 +66,19 @@ built-in rules — the app works end-to-end either way.
 |---|---|---|
 | `/api/meta` | GET | Equipment options + area labels |
 | `/api/match` | POST | `{players, equipment[], area}` → top matching games |
+| `/api/games` | GET | Full game catalog |
+| `/api/chat` | POST | `{message, history[]}` → SSE: tokens + `{"games": [ids]}` suggestion events; off-topic questions are refused |
 | `/api/rules` | POST | Same + `game_ids[]` → SSE stream of markdown tokens |
+| `/api/scores` | GET/POST/DELETE | Per-game scoreboard entries |
 | `/api/health` | GET | Liveness |
+
+## UI
+
+shadcn sidebar with three views:
+
+- **Home** — "Coach" chatbot: describe your group/equipment/location and it suggests playable game cards; ask rules; unrelated questions are politely refused.
+- **Games Catalog** — the full local library with search + area filters; Play opens streamed rules.
+- **Scoreboard** — pick any game and log scores; ranked table per game.
 
 ## Tests
 
