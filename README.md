@@ -17,14 +17,18 @@ Zero cloud APIs, zero API fees, works fully offline.
 
 ## Quick start
 
-### Docker (everything, one command)
+### Docker
 
 ```bash
+# Uses Ollama installed on your machine (ollama serve + ollama pull gemma4:latest)
 docker compose up --build
+
+# No local Ollama? Run everything in containers instead:
+docker compose --profile containerized-ollama up --build
 ```
 
-Starts Ollama, pulls `gemma4:latest` into a persistent volume, launches the
-API and serves the frontend at http://localhost:5173.
+Serves the frontend at http://localhost:5173. `OLLAMA_URL`/`GPLAY_MODEL`
+env vars override the defaults (`http://host.docker.internal:11434` / `gemma4:latest`).
 
 ### Manual
 

@@ -1,6 +1,30 @@
 services:
+  server:
+    build: ./server
+    environment:
+      # Default: use Ollama installed on the host machine
+      # (must be running: `ollama serve` + `ollama pull gemma4:latest`).
+      # Override with OLLAMA_URL when using the containerized Ollama profile.
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      GPLAY_MODEL: ${GPLAY_MODEL:-gemma4:latest}
+    extra_hosts:
+      # Lets Linux containers reach services on the host (no-op on Docker Desktop).
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8000:8000"
+
+  client:
+    build: ./client
+    depends_on:
+      - server
+    ports:
+      - "5173:80"
+
+  # Optional fully-containerized Ollama for machines without a local install:
+  #   docker compose --profile containerized-ollama up
   ollama:
     image: ollama/ollama:latest
+    profiles: ["containerized-ollama"]
     volumes:
       - ollama_data:/root/.ollama
     ports:
@@ -16,33 +40,15 @@ services:
   # (ollama pull is a no-op when the model exists).
   ollama-pull:
     image: ollama/ollama:latest
+    profiles: ["containerized-ollama"]
     depends_on:
       ollama:
         condition: service_healthy
     environment:
       OLLAMA_HOST: http://ollama:11434
-    command: ["pull", "gemma4:latest"]
+    command: ["pull", "${GPLAY_MODEL:-gemma4:latest}"]
     volumes:
       - ollama_data:/root/.ollama
-
-  server:
-    build: ./server
-    depends_on:
-      ollama:
-        condition: service_healthy
-    environment:
-      OLLAMA_URL: http://ollama:11434
-      GPLAY_MODEL: gemma4:latest
-    ports:
-      - "8000:8000"
-
-  client:
-    build: ./client
-    depends_on:
-      - server
-      - ollama-pull
-    ports:
-      - "5173:80"
 
 volumes:
   ollama_data:
