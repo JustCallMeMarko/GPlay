@@ -1,0 +1,48 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # Pulls the model once Ollama is up; exits when done. Re-runs are cheap
+  # (ollama pull is a no-op when the model exists).
+  ollama-pull:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    command: ["pull", "gemma4:latest"]
+    volumes:
+      - ollama_data:/root/.ollama
+
+  server:
+    build: ./server
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      GPLAY_MODEL: gemma4:latest
+    ports:
+      - "8000:8000"
+
+  client:
+    build: ./client
+    depends_on:
+      - server
+      - ollama-pull
+    ports:
+      - "5173:80"
+
+volumes:
+  ollama_data:
