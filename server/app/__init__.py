@@ -1,1 +1,1 @@
-"""Touch Grass: Play Outside — FastAPI backend."""
+"""GPlay — FastAPI backend."""

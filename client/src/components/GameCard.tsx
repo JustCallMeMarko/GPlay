@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Play, Trophy, Users } from 'lucide-react'
+import { ChevronDown, ChevronUp, Play, Trophy, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export function GameCard({ game, onPlay, onScore, full }: Props) {
+  const [showRules, setShowRules] = useState(false)
   return (
     <Card className="flex flex-col">
       <CardHeader className="pb-2">
@@ -44,11 +46,22 @@ export function GameCard({ game, onPlay, onScore, full }: Props) {
       <CardContent className="flex-1 pb-3">
         <p className="text-sm text-muted-foreground">{game.summary}</p>
         {full && game.rules && (
-          <ScrollArea className="mt-3 h-44 rounded-md border bg-muted/30 p-3">
-            <div className="prose prose-xs max-w-none text-foreground dark:prose-invert">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{game.rules}</ReactMarkdown>
-            </div>
-          </ScrollArea>
+          <>
+            <button
+              onClick={() => setShowRules((v) => !v)}
+              className="mt-3 flex items-center gap-1 text-xs font-medium text-emerald-400 hover:text-emerald-300"
+            >
+              {showRules ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              {showRules ? 'Hide rules' : 'Show rules'}
+            </button>
+            {showRules && (
+              <ScrollArea className="mt-2 h-44 rounded-md border bg-muted/30 p-3">
+                <div className="prose prose-xs max-w-none text-foreground dark:prose-invert">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{game.rules}</ReactMarkdown>
+                </div>
+              </ScrollArea>
+            )}
+          </>
         )}
       </CardContent>
       <CardFooter className="flex items-center justify-between pt-0">
