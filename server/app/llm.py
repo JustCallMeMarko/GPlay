@@ -12,7 +12,7 @@ from collections.abc import AsyncIterator
 import httpx
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
-MODEL = os.environ.get("GPLAY_MODEL", "gemma-2-2b-it")
+MODEL = os.environ.get("GPLAY_MODEL", "gemma4:latest")
 
 
 def build_prompt(games: list[dict], players: int, equipment: list[str], area_label: str) -> str:
@@ -70,7 +70,7 @@ async def stream_fallback(games: list[dict]) -> AsyncIterator[str]:
     text += "Local AI engine is not running, so here are the built-in rules for your matches.\n\n"
     for g in games:
         text += g["base_rules"] + "\n\n"
-    text += "> 💡 Tip: Start Ollama (`ollama serve` + `ollama pull gemma-2-2b-it`) and restart the server for AI-tailored rules.\n"
+    text += "> 💡 Tip: Start Ollama (`ollama serve` + `ollama pull gemma4:latest`) and restart the server for AI-tailored rules.\n"
     # Fake token streaming so the UI behaves identically.
     for i in range(0, len(text), 24):
         yield text[i : i + 24]

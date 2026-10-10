@@ -12,7 +12,7 @@ Zero cloud APIs, zero API fees, works fully offline.
 ```
 [ React + Tailwind ] --REST/SSE--> [ FastAPI ] --filter--> [ SQLite games DB ]
                                           \
-                                           '--local HTTP--> [ Ollama: gemma-2-2b-it ]
+                                           '--local HTTP--> [ Ollama: gemma4:latest ]
 ```
 
 ## Quick start
@@ -39,7 +39,7 @@ npm run dev    # http://localhost:5173, proxies /api -> :8000
 
 ```bash
 ollama serve
-ollama pull gemma-2-2b-it
+ollama pull gemma4:latest
 ```
 
 If Ollama or the model isn't running, `/api/rules` falls back to streaming the
@@ -63,4 +63,4 @@ cd client && npm run lint && npm run build
 
 ## Tech stack
 
-React 19 · Vite · Tailwind CSS 4 · lucide-react · react-markdown · FastAPI · SQLite · Ollama (Gemma 2B)
+React 19 · Vite · Tailwind CSS 4 · lucide-react · react-markdown · FastAPI · SQLite · Ollama (gemma4:latest)
