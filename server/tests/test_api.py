@@ -82,3 +82,72 @@ def test_rules_unknown_game_falls_back_to_match():
     ) as r:
         text = "".join(r.iter_text())
         assert '"done": true' in text
+
+
+def test_games_catalog():
+    r = client().get("/api/games")
+    assert r.status_code == 200
+    games = r.json()["games"]
+    assert len(games) >= 25
+    assert all({"id", "name", "summary"} <= set(g) for g in games)
+
+
+def _read_chat_events(r):
+    events = []
+    for line in r.iter_lines():
+        if line.startswith("data: "):
+            payload = json.loads(line[6:])
+            if payload.get("done"):
+                break
+            events.append(payload)
+    return events
+
+
+def test_chat_game_related_suggests_games():
+    with client().stream(
+        "POST",
+        "/api/chat",
+        json={"message": "we want to play a game with a ball outside", "history": []},
+    ) as r:
+        assert r.status_code == 200
+        events = _read_chat_events(r)
+        text = "".join(e.get("token", "") for e in events)
+        assert text.strip()
+        game_events = [e for e in events if "games" in e]
+        assert game_events, "expected a games suggestion event"
+
+
+def test_chat_offtopic_refused():
+    with client().stream(
+        "POST",
+        "/api/chat",
+        json={"message": "what is the derivative of x^2?", "history": []},
+    ) as r:
+        events = _read_chat_events(r)
+        text = "".join(e.get("token", "") for e in events)
+        assert text.strip()
+        assert not any("games" in e for e in events)
+
+
+def test_scores_roundtrip():
+    c = client()
+    r = c.post(
+        "/api/scores",
+        json={"game_id": "tag-classic", "player_name": "Maya", "score": 12, "note": "3 tags"},
+    )
+    assert r.status_code == 201
+    entry = r.json()
+    assert entry["player_name"] == "Maya"
+
+    r = c.get("/api/scores?game_id=tag-classic")
+    assert any(s["id"] == entry["id"] for s in r.json()["scores"])
+
+    r = c.delete(f"/api/scores/{entry['id']}")
+    assert r.status_code == 204
+    r = c.get("/api/scores?game_id=tag-classic")
+    assert not any(s["id"] == entry["id"] for s in r.json()["scores"])
+
+
+def test_score_unknown_game_404():
+    r = client().post("/api/scores", json={"game_id": "nope", "player_name": "x", "score": 1})
+    assert r.status_code == 404

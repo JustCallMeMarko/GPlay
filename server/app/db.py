@@ -22,6 +22,15 @@ CREATE TABLE IF NOT EXISTS games (
     summary TEXT NOT NULL,
     base_rules TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_id TEXT NOT NULL REFERENCES games(id),
+    player_name TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 
@@ -87,3 +96,26 @@ def filter_games(
         if len(results) >= limit:
             break
     return results
+
+
+def add_score(conn: sqlite3.Connection, game_id: str, player_name: str, score: int, note: str = "") -> dict:
+    cur = conn.execute(
+        "INSERT INTO scores (game_id, player_name, score, note) VALUES (?, ?, ?, ?)",
+        (game_id, player_name.strip(), score, note.strip()),
+    )
+    conn.commit()
+    row = conn.execute("SELECT * FROM scores WHERE id = ?", (cur.lastrowid,)).fetchone()
+    return dict(row)
+
+
+def list_scores(conn: sqlite3.Connection, game_id: str | None = None) -> list[dict]:
+    if game_id:
+        rows = conn.execute(
+            "SELECT * FROM scores WHERE game_id = ? ORDER BY score DESC, created_at ASC",
+            (game_id,),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT * FROM scores ORDER BY created_at DESC"
+        ).fetchall()
+    return [dict(r) for r in rows]
