@@ -167,3 +167,15 @@ def test_parse_pick_line():
     assert ids == ["frisbee-golf"]
     # no marker
     assert _parse_pick_line("just text", valid) == ("just text", [])
+
+
+def test_score_patch_delta():
+    c = client()
+    r = c.post("/api/scores", json={"game_id": "tag-classic", "player_name": "Team A", "score": 0})
+    sid = r.json()["id"]
+    r = c.patch(f"/api/scores/{sid}", json={"delta": 1})
+    assert r.status_code == 200 and r.json()["score"] == 1
+    r = c.patch(f"/api/scores/{sid}", json={"delta": -1})
+    assert r.json()["score"] == 0
+    assert c.patch("/api/scores/99999", json={"delta": 1}).status_code == 404
+    c.delete(f"/api/scores/{sid}")

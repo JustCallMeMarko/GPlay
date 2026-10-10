@@ -70,6 +70,16 @@ export async function deleteScore(id: number): Promise<void> {
   if (!res.ok) throw new Error(`delete failed: ${res.status}`)
 }
 
+export async function bumpScore(id: number, delta: number): Promise<Score> {
+  const res = await fetch(`/api/scores/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ delta }),
+  })
+  if (!res.ok) throw new Error(`bump failed: ${res.status}`)
+  return res.json()
+}
+
 /** Parse an SSE response body, dispatching each JSON payload to onEvent. */
 async function readSse(
   res: Response,

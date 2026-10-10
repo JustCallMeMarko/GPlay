@@ -107,6 +107,22 @@ def add_score(req: ScoreRequest):
     return db.add_score(app.state.conn, req.game_id, req.player_name, req.score, req.note)
 
 
+class ScoreDelta(BaseModel):
+    delta: int = Field(ge=-100, le=100)
+
+
+@app.patch("/api/scores/{score_id}")
+def update_score(score_id: int, req: ScoreDelta):
+    row = app.state.conn.execute(
+        "UPDATE scores SET score = score + ? WHERE id = ? RETURNING *",
+        (req.delta, score_id),
+    ).fetchone()
+    app.state.conn.commit()
+    if not row:
+        raise HTTPException(status_code=404, detail="unknown score id")
+    return dict(row)
+
+
 @app.delete("/api/scores/{score_id}", status_code=204)
 def delete_score(score_id: int):
     app.state.conn.execute("DELETE FROM scores WHERE id = ?", (score_id,))
