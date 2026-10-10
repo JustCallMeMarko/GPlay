@@ -150,35 +150,44 @@ def _fallback_chat(message: str, catalog: list[dict]) -> tuple[str, list[str]]:
     return reply, picks
 
 
+def _parse_pick_line(line: str, valid_ids: set[str]) -> tuple[str, list[str]]:
+    """Split a stream line on the GAMES_PICK marker; returns (visible_text, ids)."""
+    if GAME_PICK_MARKER not in line:
+        return line, []
+    visible, _, marker = line.partition(GAME_PICK_MARKER)
+    ids = [i.strip() for i in marker.strip().split(",") if i.strip()]
+    return visible, [i for i in ids if i in valid_ids][:5]
+
+
 async def stream_chat(
     history: list[dict], message: str, catalog: list[dict]
 ) -> AsyncIterator[dict]:
     """Yield {'token': str} events then an optional {'games': [ids]}."""
     try:
-        # Withhold a tail so the GAMES_PICK marker never leaks into the chat.
-        tail = ""
         picks: list[str] = []
+        valid = {g["id"] for g in catalog}
         try:
+            # Filter line-by-line so a GAMES_PICK marker never leaks into the
+            # chat regardless of its length or position in the stream.
+            buf = ""
             async for token in stream_ollama(_build_chat_prompt(history, message, catalog)):
-                tail += token
-                if len(tail) > 60:
-                    yield {"token": tail[:-60]}
-                    tail = tail[-60:]
+                buf += token
+                while "\n" in buf:
+                    line, buf = buf.split("\n", 1)
+                    visible, ids = _parse_pick_line(line, valid)
+                    picks.extend(i for i in ids if i not in picks)
+                    if visible:
+                        yield {"token": visible + "\n"}
+            if buf:
+                visible, ids = _parse_pick_line(buf, valid)
+                picks.extend(i for i in ids if i not in picks)
+                if visible:
+                    yield {"token": visible}
         except (httpx.HTTPError, json.JSONDecodeError, OSError):
             reply, picks = _fallback_chat(message, catalog)
             for i in range(0, len(reply), 24):
                 yield {"token": reply[i : i + 24]}
                 await asyncio.sleep(0.01)
-        else:
-            if GAME_PICK_MARKER in tail:
-                body, _, marker = tail.partition(GAME_PICK_MARKER)
-                if body:
-                    yield {"token": body}
-                ids = [i.strip() for i in marker.strip().split(",") if i.strip()]
-                valid = {g["id"] for g in catalog}
-                picks = [i for i in ids if i in valid][:5]
-            elif tail:
-                yield {"token": tail}
         if picks:
             yield {"games": picks}
     except Exception:  # never break the stream for chat
